@@ -62,9 +62,12 @@ const LogsTable = () => {
         setTabData((prevData) => ({
             ...prevData,
             [key]: {
-                balance: 0,
-                usage: 0,
-                accessdate: "未知",
+                totalGranted: 0,
+                totalUsed: 0,
+                totalAvailable: 0,
+                unlimitedQuota: false,
+                expiresAt: 0,
+                tokenName: '',
                 logs: [],
                 tokenValid: false,
             }
@@ -82,37 +85,39 @@ const LogsTable = () => {
             return;
         }
         setLoading(true);
-        let newTabData = { ...tabData[activeTabKey], balance: 0, usage: 0, accessdate: 0, logs: [], tokenValid: false };
+        let newTabData = { ...tabData[activeTabKey], totalGranted: 0, totalUsed: 0, totalAvailable: 0, unlimitedQuota: false, expiresAt: 0, tokenName: '', logs: [], tokenValid: false };
 
         try {
 
             if (process.env.REACT_APP_SHOW_BALANCE === "true") {
-                const subscription = await API.get(`${baseUrl}/v1/dashboard/billing/subscription`, {
+                const usageRes = await API.get(`${baseUrl}/api/usage/token/`, {
                     headers: { Authorization: `Bearer ${apikey}` },
                 });
-                const subscriptionData = subscription.data;
-                newTabData.balance = subscriptionData.hard_limit_usd;
-                newTabData.tokenValid = true;
-
-                let now = new Date();
-                let start = new Date(now.getTime() - 100 * 24 * 3600 * 1000);
-                let start_date = `${start.getFullYear()}-${start.getMonth() + 1}-${start.getDate()}`;
-                let end_date = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-                const res = await API.get(`${baseUrl}/v1/dashboard/billing/usage?start_date=${start_date}&end_date=${end_date}`, {
-                    headers: { Authorization: `Bearer ${apikey}` },
-                });
-                const data = res.data;
-                newTabData.usage = data.total_usage / 100;
+                const usageData = usageRes.data;
+                if (usageData.code) {
+                    const d = usageData.data;
+                    newTabData.unlimitedQuota = d.unlimited_quota;
+                    newTabData.totalGranted = d.total_granted;
+                    newTabData.totalUsed = d.total_used;
+                    newTabData.totalAvailable = d.total_available;
+                    newTabData.expiresAt = d.expires_at;
+                    newTabData.tokenName = d.name;
+                    newTabData.tokenValid = true;
+                } else {
+                    Toast.error(usageData.message || '查询令牌信息失败');
+                }
             }
         } catch (e) {
             console.log(e)
-            Toast.error("令牌已用尽");
+            Toast.error("查询令牌信息失败，请检查令牌是否正确");
             resetData(activeTabKey); // 如果发生错误，重置所有数据为默认值
             setLoading(false);
         }
         try {
             if (process.env.REACT_APP_SHOW_DETAIL === "true") {
-                const logRes = await API.get(`${baseUrl}/api/log/token?key=${apikey}`);
+                const logRes = await API.get(`${baseUrl}/api/log/token`, {
+                    headers: { Authorization: `Bearer ${apikey}` },
+                });
                 const { success, message, data: logData } = logRes.data;
                 if (success) {
                     newTabData.logs = logData.reverse();
@@ -331,11 +336,12 @@ const LogsTable = () => {
     const copyTokenInfo = (e) => {
         e.stopPropagation();
         const activeTabData = tabData[activeTabKey] || {};
-        const { balance, usage, accessdate } = activeTabData;
-        const info = `令牌总额: ${balance === 100000000 ? '无限' : `${balance.toFixed(3)}`}
-剩余额度: ${balance === 100000000 ? '无限制' : `${(balance - usage).toFixed(3)}`}
-已用额度: ${balance === 100000000 ? '不进行计算' : `${usage.toFixed(3)}`}
-有效期至: ${accessdate === 0 ? '永不过期' : renderTimestamp(accessdate)}`;
+        const { totalGranted, totalUsed, totalAvailable, unlimitedQuota, expiresAt, tokenName } = activeTabData;
+        const info = `令牌名称: ${tokenName || '未知'}
+令牌总额: ${unlimitedQuota ? '无限' : renderQuota(totalGranted, 3)}
+剩余额度: ${unlimitedQuota ? '无限制' : renderQuota(totalAvailable, 3)}
+已用额度: ${unlimitedQuota ? '不进行计算' : renderQuota(totalUsed, 3)}
+有效期至: ${expiresAt === 0 ? '永不过期' : renderTimestamp(expiresAt)}`;
         copyText(info);
     };
 
@@ -377,7 +383,7 @@ const LogsTable = () => {
         }
     };
 
-    const activeTabData = tabData[activeTabKey] || { logs: [], balance: 0, usage: 0, accessdate: "未知", tokenValid: false };
+    const activeTabData = tabData[activeTabKey] || { logs: [], totalGranted: 0, totalUsed: 0, totalAvailable: 0, unlimitedQuota: false, expiresAt: 0, tokenName: '', tokenValid: false };
 
     const renderContent = () => (
         <>
@@ -421,19 +427,23 @@ const LogsTable = () => {
                             <Spin spinning={loading}>
                                 <div style={{ marginBottom: 16 }}>
                                     <Text type="secondary">
-                                        令牌总额：{activeTabData.balance === 100000000 ? "无限" : activeTabData.balance === "未知" || activeTabData.balance === undefined ? "未知" : `${activeTabData.balance.toFixed(3)}`}
+                                        令牌名称：{activeTabData.tokenName || '未知'}
                                     </Text>
                                     <br /><br />
                                     <Text type="secondary">
-                                        剩余额度：{activeTabData.balance === 100000000 ? "无限制" : activeTabData.balance === "未知" || activeTabData.usage === "未知" || activeTabData.balance === undefined || activeTabData.usage === undefined ? "未知" : `${(activeTabData.balance - activeTabData.usage).toFixed(3)}`}
+                                        令牌总额：{activeTabData.unlimitedQuota ? "无限" : !activeTabData.tokenValid ? "未知" : renderQuota(activeTabData.totalGranted, 3)}
                                     </Text>
                                     <br /><br />
                                     <Text type="secondary">
-                                        已用额度：{activeTabData.balance === 100000000 ? "不进行计算" : activeTabData.usage === "未知" || activeTabData.usage === undefined ? "未知" : `${activeTabData.usage.toFixed(3)}`}
+                                        剩余额度：{activeTabData.unlimitedQuota ? "无限制" : !activeTabData.tokenValid ? "未知" : renderQuota(activeTabData.totalAvailable, 3)}
                                     </Text>
                                     <br /><br />
                                     <Text type="secondary">
-                                        有效期至：{activeTabData.accessdate === 0 ? '永不过期' : activeTabData.accessdate === "未知" ? '未知' : renderTimestamp(activeTabData.accessdate)}
+                                        已用额度：{activeTabData.unlimitedQuota ? "不进行计算" : !activeTabData.tokenValid ? "未知" : renderQuota(activeTabData.totalUsed, 3)}
+                                    </Text>
+                                    <br /><br />
+                                    <Text type="secondary">
+                                        有效期至：{activeTabData.expiresAt === 0 ? '永不过期' : !activeTabData.tokenValid ? '未知' : renderTimestamp(activeTabData.expiresAt)}
                                     </Text>
                                 </div>
                             </Spin>
