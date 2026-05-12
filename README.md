@@ -2,11 +2,11 @@
 
 <div align="center">
 
-<h1 align="center">Neko API Key Tool</h1>
+<h1 align="center">New API Key Tool</h1>
 
 NewAPI 令牌查询页
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FCalcium-Ion%2Fneko-api-key-tool&env=REACT_APP_SHOW_DETAIL&env=REACT_APP_SHOW_BALANCE&env=REACT_APP_BASE_URL&env=REACT_APP_SHOW_ICONGITHUB&project-name=neko-api-key-tool&repository-name=neko-api-key-tool)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FCalcium-Ion%2Fnew-api-key-tool&env=REACT_APP_SHOW_DETAIL&env=REACT_APP_SHOW_BALANCE&env=REACT_APP_BASE_URL&env=REACT_APP_SHOW_ICONGITHUB&project-name=new-api-key-tool&repository-name=new-api-key-tool)
 
 </div>
 
@@ -18,7 +18,7 @@ NewAPI 令牌查询页
 #### Vercel 部署
 1. 准备好你的 [NewAPI项目](https://github.com/Calcium-Ion/new-api);
 2. 点击右侧按钮开始部署：
-   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FCalcium-Ion%2Fneko-api-key-tool&env=REACT_APP_SHOW_DETAIL&env=REACT_APP_SHOW_BALANCE&env=REACT_APP_BASE_URL&env=REACT_APP_SHOW_ICONGITHUB&project-name=neko-api-key-tool&repository-name=neko-api-key-tool)，直接使用 Github 账号登录即可，记得根据自己需求配置环境变量，环境变量如下： 
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FCalcium-Ion%2Fnew-api-key-tool&env=REACT_APP_SHOW_DETAIL&env=REACT_APP_SHOW_BALANCE&env=REACT_APP_BASE_URL&env=REACT_APP_SHOW_ICONGITHUB&project-name=new-api-key-tool&repository-name=new-api-key-tool)，直接使用 Github 账号登录即可，记得根据自己需求配置环境变量，环境变量如下： 
 
 ```   
 REACT_APP_SHOW_BALANCE: 是否展示令牌信息，true 或 false
@@ -36,7 +36,7 @@ REACT_APP_SHOW_BALANCE=true
 REACT_APP_SHOW_DETAIL=true
 
 # NewAPI的BaseURL（支持多个NewAPI站点聚合查询，键值对中的键为站点名称，值为站点的URL）
-REACT_APP_BASE_URL={"server1": "https://redacted.com", "server2": "https://gf.redacted.com"}
+REACT_APP_BASE_URL={"server1": "https://example.newapi.ai", "server2": "https://example2.newapi.ai"}
 
 # 展示GitHub图标
 REACT_APP_SHOW_ICONGITHUB=true
@@ -48,8 +48,8 @@ REACT_APP_SHOW_ICONGITHUB=true
 #### Docker 部署
 1. 克隆项目到本地:
 ```bash
-git clone https://github.com/Calcium-Ion/neko-api-key-tool.git
-cd neko-api-key-tool
+git clone https://github.com/Calcium-Ion/new-api-key-tool.git
+cd new-api-key-tool
 ```
 
 2. 创建并配置环境变量文件:
@@ -63,10 +63,10 @@ vim .env
 3. 构建并运行 Docker 容器:
 ```bash
 # 构建镜像
-docker build -t neko-api-key-tool .
+docker build -t new-api-key-tool .
 
 # 运行容器
-docker run -d -p 80:80 --name neko-api-key-tool neko-api-key-tool
+docker run -d -p 80:80 --name new-api-key-tool new-api-key-tool
 ```
 
 ### 二次开发
