@@ -61,6 +61,34 @@ export type WaffoPancakePaymentResponse = ApiResponse<
 >
 
 /**
+ * USAD deposit address response data
+ */
+export interface UsadAddressData {
+  order_id: string
+  symbol: string
+  mainnet: string
+  address: string
+  deposit_confirm: number
+  address_qr_code: string
+  memo: string
+  min_topup: number
+  unit_price: number
+}
+
+/**
+ * USAD txid verify response data
+ */
+export interface UsadVerifyData {
+  order_id: string
+  txid: string
+  amount: string
+  quota: number
+}
+
+export type UsadAddressResponse = ApiResponse<UsadAddressData>
+export type UsadVerifyResponse = ApiResponse<UsadVerifyData>
+
+/**
  * Creem product configuration
  */
 export interface CreemProduct {
@@ -150,6 +178,10 @@ export interface TopupInfo {
   enable_waffo_pancake_topup?: boolean
   /** Minimum topup amount for Waffo Pancake */
   waffo_pancake_min_topup?: number
+  /** Whether USAD topup is enabled */
+  enable_usad_topup?: boolean
+  /** Minimum topup amount for USAD */
+  usad_min_topup?: number
   /** Whether redemption code usage is enabled */
   enable_redemption?: boolean
   /** Whether compliance confirmation has been completed */

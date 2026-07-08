@@ -87,6 +87,13 @@ export function isWaffoPancakePayment(paymentType: string): boolean {
 }
 
 /**
+ * Check if payment method is USAD (on-chain deposit, two-step address + txid flow)
+ */
+export function isUsadPayment(paymentType: string): boolean {
+  return paymentType === PAYMENT_TYPES.USAD
+}
+
+/**
  * Get default payment type from topup info
  */
 export function getDefaultPaymentType(topupInfo: TopupInfo | null): string {

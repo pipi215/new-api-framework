@@ -39,6 +39,8 @@ import type {
   WaffoPaymentResponse,
   WaffoPancakePaymentRequest,
   WaffoPancakePaymentResponse,
+  UsadAddressResponse,
+  UsadVerifyResponse,
 } from './types'
 
 // ============================================================================
@@ -164,6 +166,31 @@ export async function requestWaffoPancakePayment(
   request: WaffoPancakePaymentRequest
 ): Promise<WaffoPancakePaymentResponse> {
   const res = await api.post('/api/user/waffo-pancake/pay', request, {
+    skipBusinessError: true,
+  } as Record<string, unknown>)
+  return res.data
+}
+
+/**
+ * Query USAD deposit address (creates a pending topup order)
+ */
+export async function requestUsadAddress(): Promise<UsadAddressResponse> {
+  const res = await api.post(
+    '/api/user/usad/address',
+    {},
+    { skipBusinessError: true } as Record<string, unknown>
+  )
+  return res.data
+}
+
+/**
+ * Verify a USAD deposit by on-chain txid and credit quota
+ */
+export async function verifyUsadDeposit(params: {
+  trade_no: string
+  txid: string
+}): Promise<UsadVerifyResponse> {
+  const res = await api.post('/api/user/usad/verify', params, {
     skipBusinessError: true,
   } as Record<string, unknown>)
   return res.data

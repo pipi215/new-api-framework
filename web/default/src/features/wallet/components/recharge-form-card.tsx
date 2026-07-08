@@ -314,7 +314,11 @@ export function RechargeFormCard({
                   <div className='grid grid-cols-2 gap-1.5 sm:gap-3 lg:grid-cols-3'>
                     {topupInfo?.pay_methods?.map((method) => {
                       const minTopup = method.min_topup || 0
-                      const disabled = minTopup > topupAmount
+                      // USAD uses a two-step address+txid flow that doesn't
+                      // depend on the topupAmount, so don't disable it on
+                      // amount checks.
+                      const isUsad = method.type === 'usad'
+                      const disabled = !isUsad && minTopup > topupAmount
                       const disabledReason = disabled
                         ? t('Minimum topup amount: {{amount}}', {
                             amount: minTopup,

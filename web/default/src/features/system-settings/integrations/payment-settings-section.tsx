@@ -176,6 +176,11 @@ const paymentSchema = z.object({
   WaffoPancakeMerchantID: z.string(),
   WaffoPancakePrivateKey: z.string(),
   WaffoPancakeReturnURL: z.string(),
+  UsadApiUrl: z.string(),
+  UsadAccessKey: z.string(),
+  UsadApiSecret: z.string(),
+  UsadUnitPrice: z.coerce.number().min(0),
+  UsadMinTopUp: z.coerce.number().min(0),
 })
 
 type PaymentFormValues = z.infer<typeof paymentSchema>
@@ -457,6 +462,11 @@ export function PaymentSettingsSection({
       WaffoPancakeReturnURL: removeTrailingSlash(
         values.WaffoPancakeReturnURL.trim()
       ),
+      UsadApiUrl: removeTrailingSlash(values.UsadApiUrl.trim()),
+      UsadAccessKey: values.UsadAccessKey.trim(),
+      UsadApiSecret: values.UsadApiSecret.trim(),
+      UsadUnitPrice: values.UsadUnitPrice,
+      UsadMinTopUp: values.UsadMinTopUp,
     }
 
     const initial = {
@@ -504,6 +514,11 @@ export function PaymentSettingsSection({
       WaffoPancakeReturnURL: removeTrailingSlash(
         initialRef.current.WaffoPancakeReturnURL.trim()
       ),
+      UsadApiUrl: removeTrailingSlash(initialRef.current.UsadApiUrl.trim()),
+      UsadAccessKey: initialRef.current.UsadAccessKey.trim(),
+      UsadApiSecret: initialRef.current.UsadApiSecret.trim(),
+      UsadUnitPrice: initialRef.current.UsadUnitPrice,
+      UsadMinTopUp: initialRef.current.UsadMinTopUp,
     }
 
     const updates: Array<{ key: string; value: string | number | boolean }> = []
@@ -701,6 +716,26 @@ export function PaymentSettingsSection({
       updates.push({ key: 'WaffoPayMethods', value: sanitized.WaffoPayMethods })
     }
 
+    if (sanitized.UsadApiUrl !== initial.UsadApiUrl) {
+      updates.push({ key: 'UsadApiUrl', value: sanitized.UsadApiUrl })
+    }
+
+    if (sanitized.UsadAccessKey !== initial.UsadAccessKey) {
+      updates.push({ key: 'UsadAccessKey', value: sanitized.UsadAccessKey })
+    }
+
+    if (sanitized.UsadApiSecret && sanitized.UsadApiSecret !== initial.UsadApiSecret) {
+      updates.push({ key: 'UsadApiSecret', value: sanitized.UsadApiSecret })
+    }
+
+    if (sanitized.UsadUnitPrice !== initial.UsadUnitPrice) {
+      updates.push({ key: 'UsadUnitPrice', value: sanitized.UsadUnitPrice })
+    }
+
+    if (sanitized.UsadMinTopUp !== initial.UsadMinTopUp) {
+      updates.push({ key: 'UsadMinTopUp', value: sanitized.UsadMinTopUp })
+    }
+
     const hasWaffoPancakeChanges =
       sanitized.WaffoPancakeMerchantID !== initial.WaffoPancakeMerchantID ||
       sanitized.WaffoPancakePrivateKey.length > 0 ||
@@ -877,13 +912,14 @@ export function PaymentSettingsSection({
           />
           <Tabs defaultValue='general' className='min-w-0'>
             <div className='overflow-x-auto pb-1'>
-              <TabsList className='grid min-w-[44rem] grid-cols-6'>
+              <TabsList className='grid min-w-[44rem] grid-cols-7'>
                 <TabsTrigger value='general'>{t('General')}</TabsTrigger>
                 <TabsTrigger value='epay'>Epay</TabsTrigger>
                 <TabsTrigger value='stripe'>{t('Stripe')}</TabsTrigger>
                 <TabsTrigger value='creem'>Creem</TabsTrigger>
                 <TabsTrigger value='waffo-pancake'>Waffo Pancake</TabsTrigger>
                 <TabsTrigger value='waffo'>Waffo</TabsTrigger>
+                <TabsTrigger value='usad'>USAD</TabsTrigger>
               </TabsList>
             </div>
 
@@ -1609,6 +1645,152 @@ export function PaymentSettingsSection({
                 payMethods={waffoPayMethods}
                 onPayMethodsChange={setWaffoPayMethods}
               />
+            </TabsContent>
+
+            <TabsContent value='usad' className={paymentTabContentClassName}>
+              <div className='space-y-4'>
+                <div>
+                  <h3 className='text-lg font-medium'>{t('USAD Gateway')}</h3>
+                  <p className='text-muted-foreground text-sm'>
+                    {t(
+                      'On-chain USAD deposit: query deposit address, then verify by txid after transfer'
+                    )}
+                  </p>
+                </div>
+
+                <Alert>
+                  <ShieldAlert className='h-4 w-4' />
+                  <AlertTitle>{t('USAD integration notes')}</AlertTitle>
+                  <AlertDescription>
+                    {t(
+                      'accessKey / apiSecret are platform-level credentials obtained offline from the USAD provider (server-to-server). Keep apiSecret safe and never commit it to logs or code.'
+                    )}
+                  </AlertDescription>
+                </Alert>
+
+                <div className='grid gap-6 md:grid-cols-2'>
+                  <FormField
+                    control={form.control}
+                    name='UsadApiUrl'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('USAD gateway URL')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={t('https://kai.com/ex-open-api')}
+                            {...field}
+                            onChange={(event) =>
+                              field.onChange(event.target.value)
+                            }
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          {t(
+                            'Base prefix; /openapi/deposit/address and /openapi/deposit/verify are appended automatically'
+                          )}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='UsadAccessKey'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('AccessKey')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={t('Public access identifier')}
+                            autoComplete='off'
+                            {...field}
+                            onChange={(event) =>
+                              field.onChange(event.target.value)
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className='grid gap-6 md:grid-cols-3'>
+                  <FormField
+                    control={form.control}
+                    name='UsadApiSecret'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('ApiSecret')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type='password'
+                            placeholder={t('Enter new secret to update')}
+                            autoComplete='new-password'
+                            {...field}
+                            onChange={(event) =>
+                              field.onChange(event.target.value)
+                            }
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          {t('HMAC signing secret (leave blank unless updating)')}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='UsadUnitPrice'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {t('Quota multiplier (1 USAD = x unit)')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type='number'
+                            step='0.00000001'
+                            min={0}
+                            {...safeNumberFieldProps(field)}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          {t(
+                            'Actual quota = received USAD amount × this multiplier × unit quota'
+                          )}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='UsadMinTopUp'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Minimum top-up (USAD)')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type='number'
+                            step='0.00000001'
+                            min={0}
+                            {...safeNumberFieldProps(field)}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          {t('Minimum received USAD amount to accept')}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </SettingsForm>

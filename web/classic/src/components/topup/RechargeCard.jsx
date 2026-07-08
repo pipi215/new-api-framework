@@ -90,6 +90,7 @@ const RechargeCard = ({
   onOpenHistory,
   enableWaffoTopUp,
   enableWaffoPancakeTopUp,
+  enableUSADTopUp,
   subscriptionLoading = false,
   subscriptionPlans = [],
   billingPreference,
@@ -319,15 +320,18 @@ const RechargeCard = ({
                               payMethod.type.startsWith('waffo:');
                             const isWaffoPancake =
                               payMethod.type === 'waffo_pancake';
+                            const isUSAD = payMethod.type === 'usad';
                             const disabled =
                               (!enableOnlineTopUp &&
                                 !isStripe &&
                                 !isWaffo &&
-                                !isWaffoPancake) ||
+                                !isWaffoPancake &&
+                                !isUSAD) ||
                               (!enableStripeTopUp && isStripe) ||
                               (!enableWaffoTopUp && isWaffo) ||
                               (!enableWaffoPancakeTopUp && isWaffoPancake) ||
-                              minTopupVal > Number(topUpCount || 0);
+                              (!enableUSADTopUp && isUSAD) ||
+                              (!isUSAD && minTopupVal > Number(topUpCount || 0));
 
                             const buttonEl = (
                               <Button

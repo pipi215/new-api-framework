@@ -116,6 +116,11 @@ func InitOptionMap() {
 	common.OptionMap["WaffoPancakeMinTopUp"] = strconv.Itoa(setting.WaffoPancakeMinTopUp)
 	common.OptionMap["WaffoPancakeStoreID"] = setting.WaffoPancakeStoreID
 	common.OptionMap["WaffoPancakeProductID"] = setting.WaffoPancakeProductID
+	common.OptionMap["UsadApiUrl"] = setting.UsadApiUrl
+	common.OptionMap["UsadAccessKey"] = setting.UsadAccessKey
+	common.OptionMap["UsadApiSecret"] = setting.UsadApiSecret
+	common.OptionMap["UsadUnitPrice"] = strconv.FormatFloat(setting.UsadUnitPrice, 'f', -1, 64)
+	common.OptionMap["UsadMinTopUp"] = strconv.Itoa(setting.UsadMinTopUp)
 	common.OptionMap["TopupGroupRatio"] = common.TopupGroupRatio2JSONString()
 	common.OptionMap["Chats"] = setting.Chats2JsonString()
 	common.OptionMap["AutoGroups"] = setting.AutoGroups2JsonString()
@@ -468,6 +473,16 @@ func updateOptionMap(key string, value string) (err error) {
 		setting.WaffoPancakeUnitPrice, _ = strconv.ParseFloat(value, 64)
 	case "WaffoPancakeMinTopUp":
 		setting.WaffoPancakeMinTopUp, _ = strconv.Atoi(value)
+	case "UsadApiUrl":
+		setting.UsadApiUrl = value
+	case "UsadAccessKey":
+		setting.UsadAccessKey = value
+	case "UsadApiSecret":
+		setting.UsadApiSecret = value
+	case "UsadUnitPrice":
+		setting.UsadUnitPrice, _ = strconv.ParseFloat(value, 64)
+	case "UsadMinTopUp":
+		setting.UsadMinTopUp, _ = strconv.Atoi(value)
 	case "TopupGroupRatio":
 		err = common.UpdateTopupGroupRatioByJSONString(value)
 	case "GitHubClientId":

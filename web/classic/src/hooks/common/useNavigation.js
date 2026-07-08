@@ -49,6 +49,12 @@ export const useNavigation = (t, docsLink, headerNavModules) => {
         itemKey: 'pricing',
         to: '/pricing',
       },
+      {
+        text: t('令牌查询'),
+        itemKey: 'tokenQuery',
+        isExternal: true,
+        externalLink: 'http://localhost:8098',
+      },
       ...(docsLink
         ? [
             {
@@ -76,6 +82,10 @@ export const useNavigation = (t, docsLink, headerNavModules) => {
         return typeof modules.pricing === 'object'
           ? modules.pricing.enabled
           : modules.pricing;
+      }
+      // 令牌查询外链默认显示，可通过配置关闭
+      if (link.itemKey === 'tokenQuery') {
+        return modules.tokenQuery !== false;
       }
       return modules[link.itemKey] === true;
     });

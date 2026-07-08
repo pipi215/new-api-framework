@@ -324,6 +324,12 @@ export type BillingSettings = {
   // section (saved via /api/option/waffo-pancake/save).
   WaffoPancakeStoreID: string
   WaffoPancakeProductID: string
+  // USAD 链上充值网关（服务端对服务端，平台级密钥）
+  UsadApiUrl: string
+  UsadAccessKey: string
+  UsadApiSecret: string
+  UsadUnitPrice: number
+  UsadMinTopUp: number
   'checkin_setting.enabled': boolean
   'checkin_setting.min_quota': number
   'checkin_setting.max_quota': number

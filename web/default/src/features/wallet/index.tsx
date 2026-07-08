@@ -29,6 +29,7 @@ import { BillingHistoryDialog } from './components/dialogs/billing-history-dialo
 import { CreemConfirmDialog } from './components/dialogs/creem-confirm-dialog'
 import { PaymentConfirmDialog } from './components/dialogs/payment-confirm-dialog'
 import { TransferDialog } from './components/dialogs/transfer-dialog'
+import { UsadDepositDialog } from './components/dialogs/usad-deposit-dialog'
 import { RechargeFormCard } from './components/recharge-form-card'
 import { SubscriptionPlansCard } from './components/subscription-plans-card'
 import { WalletStatsCard } from './components/wallet-stats-card'
@@ -41,11 +42,13 @@ import {
   useCreemPayment,
   useWaffoPayment,
   useWaffoPancakePayment,
+  useUsadPayment,
 } from './hooks'
 import {
   getDefaultPaymentType,
   getMinTopupAmount,
   isWaffoPancakePayment,
+  isUsadPayment,
 } from './lib'
 import type {
   UserWalletData,
@@ -74,6 +77,7 @@ export function Wallet(props: WalletProps) {
   const [creemDialogOpen, setCreemDialogOpen] = useState(false)
   const [selectedCreemProduct, setSelectedCreemProduct] =
     useState<CreemProduct | null>(null)
+  const [usadDialogOpen, setUsadDialogOpen] = useState(false)
   const [showSubscriptionPanel, setShowSubscriptionPanel] = useState(true)
 
   const { status } = useStatus()
@@ -104,6 +108,13 @@ export function Wallet(props: WalletProps) {
   const { processWaffoPayment } = useWaffoPayment()
   const { processing: pancakeProcessing, processWaffoPancakePayment } =
     useWaffoPancakePayment()
+  const {
+    loading: usadLoading,
+    verifying: usadVerifying,
+    address: usadAddress,
+    requestAddress: requestUsadAddress,
+    verify: verifyUsad,
+  } = useUsadPayment()
 
   // Fetch and refresh user data
   const fetchUser = useCallback(async () => {
@@ -169,6 +180,13 @@ export function Wallet(props: WalletProps) {
     setPaymentLoading(method.type)
 
     try {
+      // USAD has its own two-step flow (address + txid), not the amount/confirm flow
+      if (isUsadPayment(method.type)) {
+        setUsadDialogOpen(true)
+        await requestUsadAddress()
+        return
+      }
+
       // Validate minimum topup
       const minTopup = getMinTopupAmount(topupInfo)
       if (topupAmount < minTopup) {
@@ -234,6 +252,15 @@ export function Wallet(props: WalletProps) {
       setSelectedCreemProduct(null)
       await fetchUser()
     }
+  }
+
+  // Handle USAD txid verification
+  const handleUsadVerify = async (txid: string) => {
+    const success = await verifyUsad(txid)
+    if (success) {
+      await fetchUser()
+    }
+    return success
   }
 
   const handleWaffoMethodSelect = async (_method: unknown, index: number) => {
@@ -361,6 +388,15 @@ export function Wallet(props: WalletProps) {
         onConfirm={handleCreemConfirm}
         product={selectedCreemProduct}
         processing={creemProcessing}
+      />
+
+      <UsadDepositDialog
+        open={usadDialogOpen}
+        onOpenChange={setUsadDialogOpen}
+        address={usadAddress}
+        loading={usadLoading}
+        verifying={usadVerifying}
+        onVerify={handleUsadVerify}
       />
     </>
   )

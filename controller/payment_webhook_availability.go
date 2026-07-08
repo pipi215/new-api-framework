@@ -108,3 +108,13 @@ func isEpayWebhookConfigured() bool {
 func isEpayWebhookEnabled() bool {
 	return isEpayTopUpEnabled()
 }
+
+func isUSADTopUpEnabled() bool {
+	if !isPaymentComplianceConfirmed() {
+		return false
+	}
+	// Presence-of-credentials = enabled (matches Stripe / Creem / Waffo Pancake).
+	return strings.TrimSpace(setting.UsadApiUrl) != "" &&
+		strings.TrimSpace(setting.UsadAccessKey) != "" &&
+		strings.TrimSpace(setting.UsadApiSecret) != ""
+}

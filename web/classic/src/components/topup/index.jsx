@@ -29,7 +29,7 @@ import {
   copy,
   getQuotaPerUnit,
 } from '../../helpers';
-import { Modal, Toast } from '@douyinfe/semi-ui';
+import { Modal, Toast, Input } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../../context/User';
 import { StatusContext } from '../../context/Status';
@@ -92,6 +92,14 @@ const TopUp = () => {
   const [waffoMinTopUp, setWaffoMinTopUp] = useState(1);
   const [enableWaffoPancakeTopUp, setEnableWaffoPancakeTopUp] = useState(false);
   const [waffoPancakeMinTopUp, setWaffoPancakeMinTopUp] = useState(1);
+
+  // USAD 相关状态（链上 USAD 充值：查地址 → 转账 → 凭 txid 核对）
+  const [enableUSADTopUp, setEnableUSADTopUp] = useState(false);
+  const [usadMinTopUp, setUsadMinTopUp] = useState(1);
+  const [usadOpen, setUsadOpen] = useState(false);
+  const [usadAddress, setUsadAddress] = useState(null); // {order_id, address, memo, ...}
+  const [usadTxid, setUsadTxid] = useState('');
+  const [usadVerifying, setUsadVerifying] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
@@ -209,6 +217,11 @@ const TopUp = () => {
   };
 
   const preTopUp = async (payment) => {
+    // USAD 流程不同（查地址 + 凭 txid 核对），不走金额确认弹窗
+    if (payment === 'usad') {
+      await usadPreTopUp();
+      return;
+    }
     if (payment === 'stripe') {
       if (!enableStripeTopUp) {
         showError(t('管理员未开启Stripe充值！'));
@@ -359,6 +372,87 @@ const TopUp = () => {
     }
     setSelectedCreemProduct(product);
     setCreemOpen(true);
+  };
+
+  // USAD：选择该支付方式后，查询链上充值地址并打开核对弹窗
+  const usadPreTopUp = async () => {
+    if (!enableUSADTopUp) {
+      showError(t('管理员未开启 USAD 充值！'));
+      return;
+    }
+    setPaymentLoading(true);
+    try {
+      const res = await API.post('/api/user/usad/address');
+      if (res !== undefined) {
+        const { message, data } = res.data;
+        if (message === 'success') {
+          setUsadAddress(data);
+          setUsadTxid('');
+          setUsadOpen(true);
+        } else {
+          const errorMsg =
+            typeof data === 'string' ? data : message || t('获取充值地址失败');
+          showError(errorMsg);
+        }
+      } else {
+        showError(res);
+      }
+    } catch (e) {
+      showError(t('获取充值地址失败'));
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  // USAD：用户转账后提交 txid 核对到账
+  const usadVerify = async () => {
+    if (!usadAddress) {
+      showError(t('请先获取充值地址'));
+      return;
+    }
+    const txid = (usadTxid || '').trim();
+    if (!txid) {
+      showError(t('请输入链上交易 ID（txid）'));
+      return;
+    }
+    setUsadVerifying(true);
+    try {
+      const res = await API.post('/api/user/usad/verify', {
+        trade_no: usadAddress.order_id,
+        txid,
+      });
+      if (res !== undefined) {
+        const { message, data } = res.data;
+        if (message === 'success') {
+          showSuccess(
+            t('USAD 充值成功，到账数量：') +
+              data.amount +
+              ' USAD，额度：' +
+              renderQuota(data.quota),
+          );
+          setUsadOpen(false);
+          setUsadAddress(null);
+          setUsadTxid('');
+          getUserQuota().then();
+        } else {
+          const errorMsg =
+            typeof data === 'string' ? data : message || t('核对失败');
+          showError(errorMsg);
+        }
+      } else {
+        showError(res);
+      }
+    } catch (e) {
+      showError(t('核对失败，请稍后重试'));
+    } finally {
+      setUsadVerifying(false);
+    }
+  };
+
+  const handleUsadCancel = () => {
+    setUsadOpen(false);
+    setUsadAddress(null);
+    setUsadTxid('');
   };
 
   const onlineCreemTopUp = async () => {
@@ -677,6 +771,9 @@ const TopUp = () => {
           setWaffoMinTopUp(data.waffo_min_topup || 1);
           setEnableWaffoPancakeTopUp(enableWaffoPancakeTopUp);
           setWaffoPancakeMinTopUp(data.waffo_pancake_min_topup || 1);
+          const enableUSADTopUp = data.enable_usad_topup || false;
+          setEnableUSADTopUp(enableUSADTopUp);
+          setUsadMinTopUp(data.usad_min_topup || 1);
           setMinTopUp(minTopUpValue);
           setTopUpCount(minTopUpValue);
           setTopUpLink(data.topup_link || '');
@@ -969,6 +1066,121 @@ const TopUp = () => {
         )}
       </Modal>
 
+      {/* USAD 充值模态框：展示充值地址 + 凭 txid 核对 */}
+      <Modal
+        title={t('USAD 充值')}
+        visible={usadOpen}
+        onOk={usadVerify}
+        onCancel={handleUsadCancel}
+        maskClosable={false}
+        size='medium'
+        centered
+        confirmLoading={usadVerifying}
+        okText={t('核对到账')}
+      >
+        {usadAddress && (
+          <>
+            <p>
+              {t('币种')}：{usadAddress.symbol || 'USAD'}
+              {usadAddress.mainnet ? ` (${usadAddress.mainnet})` : ''}
+            </p>
+            <p>
+              {t('充值地址')}：
+              <span
+                style={{ cursor: 'pointer', color: 'var(--semi-color-link)' }}
+                onClick={() => {
+                  copy(usadAddress.address);
+                  showSuccess(t('已复制地址'));
+                }}
+              >
+                {usadAddress.address}
+              </span>
+            </p>
+            <div
+              style={{
+                display: 'flex',
+                gap: 16,
+                marginTop: 8,
+                marginBottom: 4,
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    color: 'var(--semi-color-text-2)',
+                    fontSize: 12,
+                    marginBottom: 2,
+                  }}
+                >
+                  {t('充值数量')}
+                </div>
+                <div style={{ fontWeight: 600, fontSize: 15 }}>
+                  {topUpCount}
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    color: 'var(--semi-color-text-2)',
+                    fontSize: 12,
+                    marginBottom: 2,
+                  }}
+                >
+                  {t('实付金额')}
+                </div>
+                <div style={{ fontWeight: 600, fontSize: 15 }}>
+                  {amountLoading ? t('计算中...') : renderAmount()}
+                </div>
+              </div>
+            </div>
+            {usadAddress.memo && (
+              <p>
+                {t('备注/Memo')}：
+                <span style={{ color: 'red' }}>{usadAddress.memo}</span>
+                <span style={{ marginLeft: 8, color: 'var(--semi-color-link)', cursor: 'pointer' }} onClick={() => { copy(usadAddress.memo); showSuccess(t('已复制 Memo')); }}>
+                  ({t('复制')})
+                </span>
+              </p>
+            )}
+            {usadAddress.address_qr_code && (
+              <div style={{ textAlign: 'center', margin: '12px 0' }}>
+                <img
+                  src={usadAddress.address_qr_code}
+                  alt='address QR'
+                  style={{ maxWidth: 200, maxHeight: 200 }}
+                />
+              </div>
+            )}
+            {usadAddress.deposit_confirm ? (
+              <p style={{ color: 'var(--semi-color-text-2)' }}>
+                {t('到账所需确认数')}：{usadAddress.deposit_confirm}
+              </p>
+            ) : null}
+            <p style={{ color: 'var(--semi-color-text-2)' }}>
+              {t('请向上述地址转账 USAD，转账完成后将链上交易 ID（txid）填入下方，点击「核对到账」确认。')}
+            </p>
+            <div style={{ marginTop: 8 }}>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: 4,
+                  color: 'var(--semi-color-text-2)',
+                  fontSize: 12,
+                }}
+              >
+                {t('链上交易 ID（txid）')}
+              </label>
+              <Input
+                placeholder={t('请输入链上 txid')}
+                value={usadTxid}
+                onChange={setUsadTxid}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </>
+        )}
+      </Modal>
+
       {/* 主布局区域 */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
         <RechargeCard
@@ -980,6 +1192,7 @@ const TopUp = () => {
           creemPreTopUp={creemPreTopUp}
           enableWaffoTopUp={enableWaffoTopUp}
           enableWaffoPancakeTopUp={enableWaffoPancakeTopUp}
+          enableUSADTopUp={enableUSADTopUp}
           presetAmounts={presetAmounts}
           selectedPreset={selectedPreset}
           selectPresetAmount={selectPresetAmount}
