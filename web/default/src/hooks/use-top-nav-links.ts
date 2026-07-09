@@ -86,12 +86,11 @@ export function useTopNavLinks(): TopNavLink[] {
     links.push({ title: t('Rankings'), href: '/rankings', requiresAuth })
   }
 
-  // Token query (external link)
+  // Token query (in-app route)
   if (modules?.tokenQuery !== false) {
     links.push({
       title: t('Token Query'),
-      href: 'https://ling.vn.com/usagetoken',
-      external: true,
+      href: '/usagetoken',
     })
   }
 
