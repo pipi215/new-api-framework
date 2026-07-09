@@ -58,6 +58,7 @@ import {
   TooltipProvider,
 } from '@/components/ui/tooltip'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
+import { PublicLayout } from '@/components/layout'
 import {
   formatQuota,
   formatTimestampToDate,
@@ -261,225 +262,228 @@ ${t('Expires At')}: ${usage.expires_at === 0 ? t('Never') : formatTimestampToDat
     : []
 
   return (
-    <div className='container mx-auto max-w-4xl px-4 py-6 sm:py-8'>
-      {/* Page title */}
-      <div className='mb-6 flex items-center gap-2'>
-        <KeyRound className='size-6 text-primary' />
-        <h1 className='text-xl font-bold tracking-tight'>
-          {t('Token Usage Query')}
-        </h1>
-      </div>
+    <PublicLayout>
+      <div className='mx-auto max-w-4xl py-4'>
+        {/* Page title */}
+        <div className='mb-6 flex items-center gap-2'>
+          <KeyRound className='size-6 text-primary' />
+          <h1 className='text-xl font-bold tracking-tight'>
+            {t('Token Usage Query')}
+          </h1>
+        </div>
 
-      {/* Input card */}
-      <Card className='mb-4'>
-        <CardContent className='pt-6'>
-          <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
-            <div className='relative flex-1'>
-              <Search className='text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2' />
-              <Input
-                type={showKey ? 'text' : 'password'}
-                placeholder={t('Enter your API key (sk-...)')}
-                value={key}
-                onChange={(e) => setKey(e.target.value)}
-                onKeyDown={handleKeyDown}
-                autoComplete='off'
-                className='pr-10 pl-9'
-              />
-              <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                className='absolute right-0 top-0 h-full'
-                onClick={() => setShowKey((v) => !v)}
-                aria-label={showKey ? t('Hide') : t('Show')}
-              >
-                {showKey ? (
-                  <EyeOff className='size-4' />
+        {/* Input card */}
+        <Card className='mb-4'>
+          <CardContent className='pt-6'>
+            <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
+              <div className='relative flex-1'>
+                <Search className='text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2' />
+                <Input
+                  type={showKey ? 'text' : 'password'}
+                  placeholder={t('Enter your API key (sk-...)')}
+                  value={key}
+                  onChange={(e) => setKey(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  autoComplete='off'
+                  className='pr-10 pl-9'
+                />
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className='absolute right-0 top-0 h-full'
+                  onClick={() => setShowKey((v) => !v)}
+                  aria-label={showKey ? t('Hide') : t('Show')}
+                >
+                  {showKey ? (
+                    <EyeOff className='size-4' />
+                  ) : (
+                    <Eye className='size-4' />
+                  )}
+                </Button>
+              </div>
+              <Button onClick={handleQuery} disabled={loading}>
+                {loading ? (
+                  <Loader2 className='size-4 animate-spin' />
                 ) : (
-                  <Eye className='size-4' />
+                  <Search className='size-4' />
                 )}
+                {t('Query')}
               </Button>
             </div>
-            <Button onClick={handleQuery} disabled={loading}>
-              {loading ? (
-                <Loader2 className='size-4 animate-spin' />
-              ) : (
-                <Search className='size-4' />
-              )}
-              {t('Query')}
-            </Button>
-          </div>
-          {error && (
-            <p className='mt-3 text-sm text-rose-500' role='alert'>
-              {error}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Results accordion */}
-      {tokenValid && (
-        <Card>
-          <CardContent className='pt-6'>
-            <Accordion
-              value={openItems}
-              onValueChange={setOpenItems}
-              className='w-full'
-            >
-              {/* Token info panel */}
-              <AccordionItem value='info'>
-                <div className='flex items-center justify-between'>
-                  <AccordionTrigger>{t('Token Information')}</AccordionTrigger>
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    className='mr-2 shrink-0'
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleCopyTokenInfo()
-                    }}
-                  >
-                    <Copy className='size-3.5' />
-                    {t('Copy')}
-                  </Button>
-                </div>
-                <AccordionContent>
-                  <div className='grid grid-cols-1 gap-3 py-2 sm:grid-cols-2'>
-                    {infoRows.map((row) => (
-                      <div
-                        key={row.label}
-                        className='flex items-center justify-between rounded-md border px-3 py-2'
-                      >
-                        <span className='text-muted-foreground flex items-center gap-1.5 text-sm'>
-                          {row.icon}
-                          {row.label}
-                        </span>
-                        <span className='text-sm font-medium'>{row.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Usage detail panel */}
-              <AccordionItem value='detail'>
-                <div className='flex items-center justify-between'>
-                  <AccordionTrigger>{t('Usage Details')}</AccordionTrigger>
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    className='mr-2 shrink-0'
-                    disabled={logs.length === 0}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleExportCSV()
-                    }}
-                  >
-                    <Download className='size-3.5' />
-                    {t('Export CSV')}
-                  </Button>
-                </div>
-                <AccordionContent>
-                  {logs.length === 0 ? (
-                    <p className='text-muted-foreground py-6 text-center text-sm'>
-                      {t('No logs found')}
-                    </p>
-                  ) : (
-                    <div className='overflow-x-auto'>
-                      <TooltipProvider delay={300}>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>{t('Time')}</TableHead>
-                              <TableHead>{t('Model')}</TableHead>
-                              <TableHead className='text-right'>
-                                {t('Duration')}
-                              </TableHead>
-                              <TableHead className='text-right'>
-                                {t('Prompt')}
-                              </TableHead>
-                              <TableHead className='text-right'>
-                                {t('Completion')}
-                              </TableHead>
-                              <TableHead className='text-right'>
-                                {t('Quota')}
-                              </TableHead>
-                              <TableHead>{t('Detail')}</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {logs.map((log) => {
-                              // Only show consume-type logs (type 0 or 2)
-                              const isConsume =
-                                log.type === 0 || log.type === 2
-                              return (
-                                <TableRow key={log.id}>
-                                  <TableCell className='whitespace-nowrap text-xs'>
-                                    {formatTimestampToDate(log.created_at)}
-                                  </TableCell>
-                                  <TableCell>
-                                    {isConsume && log.model_name ? (
-                                      <Badge
-                                        className={`cursor-pointer font-mono text-xs ${stringToBadgeColor(log.model_name)}`}
-                                        onClick={() =>
-                                          copyToClipboard(log.model_name)
-                                        }
-                                      >
-                                        {log.model_name}
-                                      </Badge>
-                                    ) : (
-                                      '-'
-                                    )}
-                                  </TableCell>
-                                  <TableCell className='text-right'>
-                                    {isConsume
-                                      ? useTimeBadge(log.use_time)
-                                      : '-'}
-                                  </TableCell>
-                                  <TableCell className='text-right text-xs'>
-                                    {isConsume ? log.prompt_tokens : '-'}
-                                  </TableCell>
-                                  <TableCell className='text-right text-xs'>
-                                    {isConsume && log.completion_tokens > 0
-                                      ? log.completion_tokens
-                                      : '-'}
-                                  </TableCell>
-                                  <TableCell className='text-right text-xs'>
-                                    {isConsume
-                                      ? formatQuota(log.quota)
-                                      : '-'}
-                                  </TableCell>
-                                  <TableCell className='max-w-[200px]'>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <span className='text-muted-foreground line-clamp-2 cursor-help text-xs'>
-                                          {log.content || '-'}
-                                        </span>
-                                      </TooltipTrigger>
-                                      {log.content && (
-                                        <TooltipContent className='max-w-sm'>
-                                          {log.content}
-                                        </TooltipContent>
-                                      )}
-                                    </Tooltip>
-                                  </TableCell>
-                                </TableRow>
-                              )
-                            })}
-                          </TableBody>
-                        </Table>
-                      </TooltipProvider>
-                      <p className='text-muted-foreground mt-3 text-xs'>
-                        {t('Total')}: {logs.length} {t('records')}
-                      </p>
-                    </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            {error && (
+              <p className='mt-3 text-sm text-rose-500' role='alert'>
+                {error}
+              </p>
+            )}
           </CardContent>
         </Card>
-      )}
-    </div>
+
+        {/* Results accordion */}
+        {tokenValid && (
+          <Card>
+            <CardContent className='pt-6'>
+              <Accordion
+                value={openItems}
+                onValueChange={setOpenItems}
+                className='w-full'
+              >
+                {/* Token info panel */}
+                <AccordionItem value='info'>
+                  <div className='flex items-center justify-between'>
+                    <AccordionTrigger>{t('Token Information')}</AccordionTrigger>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='mr-2 shrink-0'
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleCopyTokenInfo()
+                      }}
+                    >
+                      <Copy className='size-3.5' />
+                      {t('Copy')}
+                    </Button>
+                  </div>
+                  <AccordionContent>
+                    <div className='grid grid-cols-1 gap-3 py-2 sm:grid-cols-2'>
+                      {infoRows.map((row) => (
+                        <div
+                          key={row.label}
+                          className='flex items-center justify-between rounded-md border px-3 py-2'
+                        >
+                          <span className='text-muted-foreground flex items-center gap-1.5 text-sm'>
+                            {row.icon}
+                            {row.label}
+                          </span>
+                          <span className='text-sm font-medium'>
+                            {row.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Usage detail panel */}
+                <AccordionItem value='detail'>
+                  <div className='flex items-center justify-between'>
+                    <AccordionTrigger>{t('Usage Details')}</AccordionTrigger>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='mr-2 shrink-0'
+                      disabled={logs.length === 0}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleExportCSV()
+                      }}
+                    >
+                      <Download className='size-3.5' />
+                      {t('Export CSV')}
+                    </Button>
+                  </div>
+                  <AccordionContent>
+                    {logs.length === 0 ? (
+                      <p className='text-muted-foreground py-6 text-center text-sm'>
+                        {t('No logs found')}
+                      </p>
+                    ) : (
+                      <div className='overflow-x-auto'>
+                        <TooltipProvider delay={300}>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>{t('Time')}</TableHead>
+                                <TableHead>{t('Model')}</TableHead>
+                                <TableHead className='text-right'>
+                                  {t('Duration')}
+                                </TableHead>
+                                <TableHead className='text-right'>
+                                  {t('Prompt')}
+                                </TableHead>
+                                <TableHead className='text-right'>
+                                  {t('Completion')}
+                                </TableHead>
+                                <TableHead className='text-right'>
+                                  {t('Quota')}
+                                </TableHead>
+                                <TableHead>{t('Detail')}</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {logs.map((log) => {
+                                const isConsume =
+                                  log.type === 0 || log.type === 2
+                                return (
+                                  <TableRow key={log.id}>
+                                    <TableCell className='whitespace-nowrap text-xs'>
+                                      {formatTimestampToDate(log.created_at)}
+                                    </TableCell>
+                                    <TableCell>
+                                      {isConsume && log.model_name ? (
+                                        <Badge
+                                          className={`cursor-pointer font-mono text-xs ${stringToBadgeColor(log.model_name)}`}
+                                          onClick={() =>
+                                            copyToClipboard(log.model_name)
+                                          }
+                                        >
+                                          {log.model_name}
+                                        </Badge>
+                                      ) : (
+                                        '-'
+                                      )}
+                                    </TableCell>
+                                    <TableCell className='text-right'>
+                                      {isConsume
+                                        ? useTimeBadge(log.use_time)
+                                        : '-'}
+                                    </TableCell>
+                                    <TableCell className='text-right text-xs'>
+                                      {isConsume ? log.prompt_tokens : '-'}
+                                    </TableCell>
+                                    <TableCell className='text-right text-xs'>
+                                      {isConsume && log.completion_tokens > 0
+                                        ? log.completion_tokens
+                                        : '-'}
+                                    </TableCell>
+                                    <TableCell className='text-right text-xs'>
+                                      {isConsume
+                                        ? formatQuota(log.quota)
+                                        : '-'}
+                                    </TableCell>
+                                    <TableCell className='max-w-[200px]'>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <span className='text-muted-foreground line-clamp-2 cursor-help text-xs'>
+                                            {log.content || '-'}
+                                          </span>
+                                        </TooltipTrigger>
+                                        {log.content && (
+                                          <TooltipContent className='max-w-sm'>
+                                            {log.content}
+                                          </TooltipContent>
+                                        )}
+                                      </Tooltip>
+                                    </TableCell>
+                                  </TableRow>
+                                )
+                              })}
+                            </TableBody>
+                          </Table>
+                        </TooltipProvider>
+                        <p className='text-muted-foreground mt-3 text-xs'>
+                          {t('Total')}: {logs.length} {t('records')}
+                        </p>
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </PublicLayout>
   )
 }
