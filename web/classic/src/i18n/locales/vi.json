@@ -438,6 +438,8 @@
     "令牌更新成功！": "Cập nhật mã thông báo thành công!",
     "令牌的额度仅用于限制令牌本身的最大额度使用量，实际的使用受到账户的剩余额度限制": "Hạn ngạch của mã thông báo chỉ được sử dụng để giới hạn mức sử dụng hạn ngạch tối đa của chính mã thông báo, và việc sử dụng thực tế bị giới hạn bởi hạn ngạch còn lại của tài khoản",
     "令牌管理": "Quản lý mã thông báo",
+    "令牌查询": "Truy vấn token",
+    "外部令牌用量查询页面": "Trang truy vấn mức sử dụng token bên ngoài",
     "以下上游数据可能不可信：": "Dữ liệu thượng nguồn sau đây có thể không đáng tin cậy: ",
     "以下文件解析失败，已忽略：{{list}}": "Các tệp sau không phân tích được và đã bị bỏ qua: {{list}}",
     "以及": "và",

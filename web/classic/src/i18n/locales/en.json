@@ -447,6 +447,8 @@
     "令牌的额度仅用于限制令牌本身的最大额度使用量，实际的使用受到账户的剩余额度限制": "The quota of the token is only used to limit the maximum quota usage of the token itself, and the actual usage is limited by the remaining quota of the account",
     "令牌端点": "Token Endpoint",
     "令牌管理": "Token Management",
+    "令牌查询": "Token Query",
+    "外部令牌用量查询页面": "External token usage query page",
     "以下上游数据可能不可信：": "The following upstream data may not be reliable: ",
     "以下文件解析失败，已忽略：{{list}}": "The following files failed to parse and have been ignored: {{list}}",
     "以及": "and",

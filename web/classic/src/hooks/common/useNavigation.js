@@ -53,7 +53,7 @@ export const useNavigation = (t, docsLink, headerNavModules) => {
         text: t('令牌查询'),
         itemKey: 'tokenQuery',
         isExternal: true,
-        externalLink: 'http://localhost:8098',
+        externalLink: 'https://ling.vn.com/usagetoken',
       },
       ...(docsLink
         ? [
