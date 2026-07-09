@@ -86,6 +86,15 @@ export function useTopNavLinks(): TopNavLink[] {
     links.push({ title: t('Rankings'), href: '/rankings', requiresAuth })
   }
 
+  // Token query (external link)
+  if (modules?.tokenQuery !== false) {
+    links.push({
+      title: t('Token Query'),
+      href: 'https://ling.vn.com/usagetoken',
+      external: true,
+    })
+  }
+
   // Docs (supports external links)
   if (modules?.docs !== false) {
     if (docsLink) {

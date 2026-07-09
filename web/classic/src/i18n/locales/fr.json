@@ -443,6 +443,8 @@
     "令牌更新成功！": "Jeton mis à jour avec succès !",
     "令牌的额度仅用于限制令牌本身的最大额度使用量，实际的使用受到账户的剩余额度限制": "Le quota du jeton est uniquement utilisé pour limiter l'utilisation maximale du quota du jeton lui-même, et l'utilisation réelle est limitée par le quota restant du compte",
     "令牌管理": "Jetons",
+    "令牌查询": "Requête de jeton",
+    "外部令牌用量查询页面": "Page externe de requête d'utilisation des jetons",
     "以下上游数据可能不可信：": "Les données en amont suivantes peuvent ne pas être fiables : ",
     "以下文件解析失败，已忽略：{{list}}": "L'analyse des fichiers suivants a échoué, ignorés : {{list}}",
     "以及": "et",
