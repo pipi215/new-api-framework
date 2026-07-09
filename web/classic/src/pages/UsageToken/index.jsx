@@ -290,26 +290,27 @@ ${t('有效期至')}: ${tokenData.expiresAt === 0 ? t('永不过期') : timestam
 
   return (
     <>
-      <Card style={{ marginTop: 24 }}>
-        <Input
-          showClear
-          value={apikey}
-          onChange={(value) => setAPIKey(value)}
-          placeholder={t('请输入要查询的令牌 sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')}
-          prefix={<IconSearch />}
-          suffix={
-            <Button
-              type='primary'
-              theme="solid"
-              onClick={fetchData}
-              loading={loading}
-              disabled={apikey === ''}
-            >
-              {t('查询')}
-            </Button>
-          }
-          onEnterPress={fetchData}
-        />
+      <Card style={{ marginTop: 88 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <Input
+            showClear
+            value={apikey}
+            onChange={(value) => setAPIKey(value)}
+            placeholder={t('请输入要查询的令牌 sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')}
+            prefix={<IconSearch />}
+            onEnterPress={fetchData}
+            style={{ flex: 1 }}
+          />
+          <Button
+            type='primary'
+            theme="solid"
+            onClick={fetchData}
+            loading={loading}
+            disabled={apikey === ''}
+          >
+            {t('查询')}
+          </Button>
+        </div>
       </Card>
       <Card style={{ marginTop: 24 }}>
         <Collapse activeKey={activeKeys} onChange={(keys) => setActiveKeys(keys)}>
