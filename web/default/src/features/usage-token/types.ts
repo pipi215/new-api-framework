@@ -45,4 +45,5 @@ export interface TokenUsageLog {
   is_stream: boolean
   token_name: string
   request_id?: string
+  other?: string
 }
